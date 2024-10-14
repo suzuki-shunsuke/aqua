@@ -10,6 +10,7 @@ import (
 
 	"github.com/aquaproj/aqua/v2/pkg/config"
 	finder "github.com/aquaproj/aqua/v2/pkg/config-finder"
+	"github.com/aquaproj/aqua/v2/pkg/github"
 	"github.com/aquaproj/aqua/v2/pkg/log"
 	"github.com/aquaproj/aqua/v2/pkg/policy"
 	"github.com/aquaproj/aqua/v2/pkg/runtime"
@@ -52,6 +53,10 @@ func SetParam(c *cli.Context, logE *logrus.Entry, commandName string, param *con
 		param.Insert = c.Bool("i")
 	}
 	param.All = c.Bool("all")
+	param.Stdin = c.Bool("stdin")
+	if err := setEnableKeyring(param); err != nil {
+		return err
+	}
 	param.Global = c.Bool("g")
 	param.Detail = c.Bool("detail")
 	param.Prune = c.Bool("prune")
@@ -149,4 +154,17 @@ func parseTags(tags []string) map[string]struct{} {
 		tagsM[tag] = struct{}{}
 	}
 	return tagsM
+}
+
+func setEnableKeyring(param *config.Param) error {
+	if a := os.Getenv("AQUA_ENABLE_KEYRING"); a != "" {
+		b, err := strconv.ParseBool(a)
+		if err != nil {
+			return fmt.Errorf("parse the environment variable AQUA_ENABLE_KEYRING as bool: %w", err)
+		}
+		param.GitHub = &github.Option{
+			Keyring: b,
+		}
+	}
+	return nil
 }
