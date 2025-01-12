@@ -26,13 +26,14 @@ type Controller struct {
 	fs               afero.Fs
 	policyReader     PolicyReader
 	enabledXSysExec  bool
+	vacuum           VacuumController
 }
 
 type Installer interface {
 	InstallPackage(ctx context.Context, logE *logrus.Entry, param *installpackage.ParamInstallPackage) error
 }
 
-func New(pkgInstaller Installer, whichCtrl WhichController, executor Executor, osEnv osenv.OSEnv, fs afero.Fs, policyReader PolicyReader) *Controller {
+func New(pkgInstaller Installer, whichCtrl WhichController, executor Executor, osEnv osenv.OSEnv, fs afero.Fs, policyReader PolicyReader, vacuumCtrl VacuumController) *Controller {
 	return &Controller{
 		stdin:            os.Stdin,
 		stdout:           os.Stdout,
@@ -43,6 +44,7 @@ func New(pkgInstaller Installer, whichCtrl WhichController, executor Executor, o
 		enabledXSysExec:  getEnabledXSysExec(osEnv, runtime.GOOS),
 		fs:               fs,
 		policyReader:     policyReader,
+		vacuum:           vacuumCtrl,
 	}
 }
 
@@ -58,4 +60,8 @@ type PolicyReader interface {
 
 type WhichController interface {
 	Which(ctx context.Context, logE *logrus.Entry, param *config.Param, exeName string) (*which.FindResult, error)
+}
+
+type VacuumController interface {
+	Close(logE *logrus.Entry) error
 }

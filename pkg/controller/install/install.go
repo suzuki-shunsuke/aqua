@@ -85,6 +85,7 @@ func (c *Controller) installAll(ctx context.Context, logE *logrus.Entry, param *
 }
 
 func (c *Controller) install(ctx context.Context, logE *logrus.Entry, cfgFilePath string, policyConfigs []*policy.Config, param *config.Param) error {
+	defer c.vacuum.Close(logE)
 	cfg := &aqua.Config{}
 	if cfgFilePath == "" {
 		return finder.ErrConfigFileNotFound

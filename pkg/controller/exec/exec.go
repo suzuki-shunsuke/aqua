@@ -62,7 +62,14 @@ func (c *Controller) Exec(ctx context.Context, logE *logrus.Entry, param *config
 	if err := c.install(ctx, logE, findResult, policyCfgs, param); err != nil {
 		return err
 	}
+	c.vacuumClose(logE)
 	return c.execCommandWithRetry(ctx, logE, findResult.ExePath, args...)
+}
+
+func (c *Controller) vacuumClose(logE *logrus.Entry) {
+	if err := c.vacuum.Close(logE); err != nil {
+		logerr.WithError(logE, err).Error("close the vacuum")
+	}
 }
 
 func (c *Controller) install(ctx context.Context, logE *logrus.Entry, findResult *which.FindResult, policies []*policy.Config, param *config.Param) error {
